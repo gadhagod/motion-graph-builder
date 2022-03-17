@@ -149,7 +149,7 @@ addButton.addEventListener("click", () => {
 massInput.addEventListener("keyup", onKeyUp)
 velocityInput.addEventListener("keyup", onKeyUp);
 timeInput.addEventListener("keyup", onKeyUp); 
-document.getElementById("reset").addEventListener("click", () => {
+resetButton.addEventListener("click", () => {
     vtGraph.data.datasets[0].data = [];
     vtGraph.update();
     atGraph.data.datasets[0].data = [];
