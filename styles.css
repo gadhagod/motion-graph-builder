@@ -1,36 +1,14 @@
-body{
+body {
     background-color: lightgray;
 }
 .graph-container {
     width: 500px;
     height: 320px;
 }
-.left, .right {
-    height: 100%;
-    width: 50%;
-    position: fixed;
-    z-index: 1;
-    top: 0;
-    overflow-x: hidden;
-    padding-top: 20px;
-}
-.right {
-    top: 60;
-    left: 20
-}
-.left {
-    top: 55;
-    right: 90;
-}
-p {
-    display: inline;
-}
-table, td {
-    border: 1px solid black;
-}
-th, td {
-    width: 120px;
-}
 input {
     width: 100px;
+}
+canvas {
+    height: 300px !important;
+    width: 400px !important;
 }

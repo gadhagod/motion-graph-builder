@@ -1,15 +1,30 @@
-const addPositionInput = document.getElementById("input_position");
-const addTimeInput = document.getElementById("input_time");
-const addButton = document.getElementById("add");
-const dtTable = document.getElementById("dtTable");
-const setTimeUnitButton = document.getElementById("set_time_unit_button");
-const setPositionUnitButton = document.getElementById("set_position_unit_button");
+const massInput = document.getElementById("mass-input")
+const velocityInput = document.getElementById("velocity-input");
+const timeInput = document.getElementById("time-input");
+const addButton = document.getElementById("add-data-input");
+const resetButton = document.getElementById("reset-btn");
 
 const onKeyUp = (event) => {
     if (event.keyCode === 13) {
         event.preventDefault();
         addButton.click();
     }
+}
+
+const calculateAcceleration = (newV, lastV, newT, lastT) => {
+    return (newV - lastV) / (newT - lastT);
+}
+
+const calculateNetForce = (mass, acceleration) => {
+    return mass * acceleration;
+}
+
+const calculateMomentum = (mass, velocity) => {
+    return mass * velocity;
+}
+
+const calculateKineticEnergy = (mass, velocity) => {
+    return mass * Math.pow(velocity, 2);
 }
 
 const graphConfig = {
@@ -57,104 +72,92 @@ const graphConfig = {
     }
 }
 
-var dtGraphConfig = JSON.parse(JSON.stringify(graphConfig));
-dtGraphConfig.options.plugins.title.text = "Position VS Time";
-dtGraphConfig.data.datasets[0].label = "Position";
-dtGraphConfig.options.scales.yAxes.text = "d";
-var dtGraph = new Chart(document.getElementById("dtChart"), dtGraphConfig);
-
 var vtGraphConfig = JSON.parse(JSON.stringify(graphConfig));
 vtGraphConfig.options.plugins.title.text = "Velocity VS Time";
-vtGraphConfig.data.datasets.data = {x:0, y:0};
-vtGraphConfig.data.datasets[0].label = "Velocity";
-dtGraphConfig.options.scales.yAxes.text = "v";
-var vtGraph = new Chart(document.getElementById("vtChart"), vtGraphConfig);
+vtGraphConfig.data.datasets[0].label = "velocity";
+vtGraphConfig.options.scales.yAxes.text = "v";
+var vtGraph = new Chart(document.getElementById("vt-graph"), vtGraphConfig);
 
-const addData = (x, y) => {
-    if(!x || !y) {
+var atGraphConfig = JSON.parse(JSON.stringify(graphConfig));
+atGraphConfig.options.plugins.title.text = "Acceleration VS Time";
+atGraphConfig.data.datasets[0].label = "acceleration";
+atGraphConfig.options.scales.yAxes.text = "a";
+var atGraph = new Chart(document.getElementById("at-graph"), atGraphConfig);
+
+var ftGraphConfig = JSON.parse(JSON.stringify(graphConfig));
+ftGraphConfig.options.plugins.title.text = "Net Force VS Time";
+ftGraphConfig.data.datasets[0].label = "net force";
+ftGraphConfig.options.scales.yAxes.text = "ΣF";
+var ftGraph = new Chart(document.getElementById("ft-graph"), ftGraphConfig);
+
+var ptGraphConfig = JSON.parse(JSON.stringify(graphConfig));
+ptGraphConfig.options.plugins.title.text = "Momentum VS Time";
+ptGraphConfig.data.datasets[0].label = "momentum";
+ptGraphConfig.options.scales.yAxes.text = "p";
+var ptGraph = new Chart(document.getElementById("pt-graph"), ptGraphConfig);
+
+var ektGraphConfig = JSON.parse(JSON.stringify(graphConfig));
+ektGraphConfig.options.plugins.title.text = "Kinetic energy VS Time";
+ektGraphConfig.data.datasets[0].label = "kinetic energy";
+ektGraphConfig.options.scales.yAxes.text = "ek";
+var ektGraph = new Chart(document.getElementById("ek-graph"), ektGraphConfig);
+
+var hiddenGraph = JSON.parse(JSON.stringify(graphConfig));
+document.getElementById("hidden-graph").style.display = "none";
+
+
+const addData = (time, velocity) => {
+    if(!time || !velocity) {
         return;
     }
 
-    dtGraph.data.datasets[0].data.push({x: x, y: y})
-    let tr = document.createElement("tr");
-    let timeTd = document.createElement("td");
-    timeTd.innerText = x;
-    let positionTd = document.createElement("td");
-    positionTd.innerText = y;
-    tr.appendChild(timeTd);
-    tr.appendChild(positionTd);
-    dtTable.appendChild(tr);
-
-    let thisPoint = dtGraph.data.datasets[0].data[dtGraph.data.datasets[0].data.length - 1];
-    let lastPoint = dtGraph.data.datasets[0].data[dtGraph.data.datasets[0].data.length - 2];
-    dtGraph.update();
-
-    if (!lastPoint) {
-        return;
-    }
-
-    let y1 = (thisPoint.y - lastPoint.y) / (thisPoint.x - lastPoint.x); // sometimes is nan
-    if(isNaN(y1)) {
-        y1 = 0;
-    }
-    if (y1 === Infinity) {
-        y1 = lastPoint.y;
-    }
-    let x1 = thisPoint.x;
-
-    let y2 = y1;
-    let x2 = lastPoint.x;
-
-    //console.log(`(${x2}, ${y2}) (${x1}, ${y1})`)
-
-    vtGraph.data.datasets[0].data.push({x: x2, y: y2});
-    vtGraph.data.datasets[0].data.push({x: x1, y: y1});
+    vtGraph.data.datasets[0].data.push({x: time, y: velocity});
     vtGraph.update();
+
+    ptGraph.data.datasets[0].data.push({x: time, y: calculateMomentum(
+        massInput.value,
+        vtGraph.data.datasets[0].data[vtGraph.data.datasets[0].data.length-1].y
+    )});
+    ptGraph.update();
+
+    ektGraph.data.datasets[0].data.push({x: time, y: calculateKineticEnergy(
+        massInput.value,
+        vtGraph.data.datasets[0].data[vtGraph.data.datasets[0].data.length-1].y
+    )});
+    ektGraph.update();
+
+    if(vtGraph.data.datasets[0].data.length > 1) {
+        atGraph.data.datasets[0].data.push({x: time, y: calculateAcceleration(
+            vtGraph.data.datasets[0].data[vtGraph.data.datasets[0].data.length-1].y,
+            vtGraph.data.datasets[0].data[vtGraph.data.datasets[0].data.length-2].y,
+            vtGraph.data.datasets[0].data[vtGraph.data.datasets[0].data.length-1].x,
+            vtGraph.data.datasets[0].data[vtGraph.data.datasets[0].data.length-2].x
+        )});
+        atGraph.update();
+
+        ftGraph.data.datasets[0].data.push({x: time, y: calculateNetForce(
+            massInput.value,
+            atGraph.data.datasets[0].data[atGraph.data.datasets[0].data.length-1].y
+        )});
+        ftGraph.update();
+    }
 };
 
-const updateTotals = (tf, df) => {
-    console.log(dtGraph.data.datasets[0].data.length)
-    if (dtGraph.data.datasets[0].data.length === 1) {
-        document.getElementById("totals").innerText = `Displacement: 0; Distance: 0; Velocity: 0`;
-        return;
-    }
-    if (vtGraph.data.datasets[0].data.length < 1) {
-        document.getElementById("totals").innerText = `Displacement:— Distance:— Velocity:—`;
-        return;
-    }
-    let di = dtGraph.data.datasets[0].data[0].y;
-    let ti = dtGraph.data.datasets[0].data[0].x;
-    if(di && ti) {
-        let displacement = df - di;
-        let velocity = displacement / (tf  - ti);
-
-        let distance = 0;
-        for(let i = 1; i < dtGraph.data.datasets[0].data.length; i++) {
-            let lastD = dtGraph.data.datasets[0].data[i - 1].y;
-            let thisD = dtGraph.data.datasets[0].data[i].y;
-            distance += (thisD - lastD) * ((thisD - lastD) < 0 ? -1 : 1);
-        }
-        document.getElementById("totals").innerText = `Displacement: ${displacement}; Distance: ${distance}; Velocity: ${velocity}`;
-
-        return displacement;
-    }
-}
-
 addButton.addEventListener("click", () => {
-    addData(addTimeInput.value, addPositionInput.value);
-    updateTotals(addTimeInput.value, addPositionInput.value);
-})
-addPositionInput.addEventListener("keyup", onKeyUp);
-addTimeInput.addEventListener("keyup", onKeyUp); 
+    addData(timeInput.value, velocityInput.value);
+});
+massInput.addEventListener("keyup", onKeyUp)
+velocityInput.addEventListener("keyup", onKeyUp);
+timeInput.addEventListener("keyup", onKeyUp); 
 document.getElementById("reset").addEventListener("click", () => {
-    dtGraph.data.datasets[0].data = [];
     vtGraph.data.datasets[0].data = [];
-    dtTable.innerHTML = `<tr>
-    <th>Time</th>
-    <th>Position</th>
-<tr>`;
-
-    dtGraph.update();
     vtGraph.update();
-    updateTotals();
+    atGraph.data.datasets[0].data = [];
+    atGraph.update();
+    ftGraph.data.datasets[0].data = [];
+    ftGraph.update();
+    ptGraph.data.datasets[0].data = [];
+    ptGraph.update();
+    ektGraph.data.datasets[0].data = [];
+    ektGraph.update();
 })

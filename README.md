@@ -1,3 +1,3 @@
-A website that converts position vs time graphs to uniform velocity vs time graphs.
+A website that automatically generates velocity, acceleration, net force, momentum, and kinetic energy graphs.
 
-Link: [gadhagod.github.io/position-velocity-graphs](https://gadhagod.github.io/position-velocity-graphs).
+View the live site at [https://gadhagod.github.io/physics-graph-builder](https://gadhagod.github.io/physics-graph-builder).
